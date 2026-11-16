@@ -1,0 +1,47 @@
+[
+  {
+    "name": "SaiperrNet (WordPress)",
+    "type": "http",
+    "target": "http://host.docker.internal:8081/",
+    "link": "https://saiperr.net"
+  },
+  {
+    "name": "Nextcloud",
+    "type": "http",
+    "target": "http://host.docker.internal:8082/status.php",
+    "link": "https://nube.saiperr.net"
+  },
+  {
+    "name": "Immich",
+    "type": "http",
+    "target": "http://host.docker.internal:2283/api/server/ping",
+    "link": "https://fotos.saiperr.net"
+  },
+  {
+    "name": "Reservas",
+    "type": "http",
+    "target": "http://host.docker.internal:8083/login",
+    "link": "https://reservas.saiperr.net"
+  },
+  {
+    "name": "Suscripciones",
+    "type": "http",
+    "target": "http://host.docker.internal:8084/login",
+    "link": "https://suscripciones.saiperr.net"
+  },
+  {
+    "name": "Nginx Proxy Manager",
+    "type": "http",
+    "target": "http://host.docker.internal:81/"
+  },
+  {
+    "name": "AdGuard Home",
+    "type": "http",
+    "target": "http://host.docker.internal:3000/"
+  },
+  {
+    "name": "SSH",
+    "type": "tcp",
+    "target": "host.docker.internal:22"
+  }
+]

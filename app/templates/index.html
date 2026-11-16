@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% block title %}Panel{% endblock %}
+{% block head %}<script src="/static/app.js?v={{ asset_v }}" defer></script>{% endblock %}
+{% block navextra %}<span class="live" id="live" title="Estado de la conexión con el panel"><i></i><b>Conectando…</b></span>{% endblock %}
+{% block body %}
+<div class="page-head"><div><h1 id="h-name">Servidor</h1><p class="sub" id="h-sub">Cargando datos…</p></div>
+<div class="chips" id="h-chips"></div></div>
+
+<div class="grid kpis">
+  <section class="card kpi" id="k-cpu"><div class="k">CPU</div><div class="v"><b data-v>—</b><small>%</small></div><div class="d" data-d>&nbsp;</div><svg class="spark" data-spark="cpu" viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true"></svg></section>
+  <section class="card kpi" id="k-mem"><div class="k">Memoria</div><div class="v"><b data-v>—</b><small>%</small></div><div class="d" data-d>&nbsp;</div><svg class="spark" data-spark="mem" viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true"></svg></section>
+  <section class="card kpi" id="k-temp"><div class="k">Temperatura</div><div class="v"><b data-v>—</b><small>°C</small></div><div class="d" data-d>&nbsp;</div><svg class="spark" data-spark="temp" viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true"></svg></section>
+  <section class="card kpi" id="k-net"><div class="k">Red</div><div class="v two"><span class="dn">↓ <b data-rx>—</b></span><span class="up">↑ <b data-tx>—</b></span></div><div class="d" data-d>&nbsp;</div><svg class="spark" data-spark="net" viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true"></svg></section>
+</div>
+
+<div class="grid two">
+  <section class="card"><h2>Núcleos</h2><div class="cores" id="cores"></div>
+    <div class="kv" id="cpu-kv"></div></section>
+  <section class="card"><h2>Memoria y almacenamiento</h2><div id="bars"></div></section>
+</div>
+
+<section class="card"><div class="card-head"><h2>Tráfico de red</h2><div class="legend"><span><i class="rx"></i>Bajada</span><span><i class="tx"></i>Subida</span><span class="mut" id="net-range"></span></div></div>
+  <div class="chart-wrap"><svg class="chart" id="net-chart" viewBox="0 0 900 220" preserveAspectRatio="none" role="img" aria-label="Tráfico de red de los últimos minutos"></svg><span class="ymax" id="net-max"></span></div>
+  <div class="tbl"><table id="ifaces"><thead><tr><th>Interfaz</th><th class="num">Bajada</th><th class="num">Subida</th><th class="num">Recibido</th><th class="num">Enviado</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<div class="grid two wide-left">
+  <section class="card"><div class="card-head"><h2>Procesos</h2>
+    <div class="seg" role="group" aria-label="Ordenar procesos"><button type="button" class="on" data-sort="cpu">Por CPU</button><button type="button" data-sort="mem">Por memoria</button></div></div>
+    <div class="tbl"><table id="procs"><thead><tr><th>Proceso</th><th>Usuario</th><th class="num">CPU</th><th class="num">Memoria</th></tr></thead><tbody></tbody></table></div>
+    <p class="hint" id="procs-foot"></p>
+  </section>
+  <div class="stack">
+    <section class="card"><h2>Servicios</h2><ul class="svcs" id="svcs"><li class="mut">Comprobando…</li></ul></section>
+    <section class="card"><h2>Sensores</h2><ul class="sensors" id="sensors"><li class="mut">Sin datos</li></ul></section>
+  </div>
+</div>
+<p class="foot" id="foot"></p>
+{% endblock %}

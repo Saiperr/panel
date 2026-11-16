@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}Configurar{% endblock %}{% block body %}
+<div class="auth"><h1>Primer acceso</h1><p class="sub">Crea la cuenta de administrador. Esta pantalla desaparece en cuanto exista un usuario.</p>
+<div class="card"><form method="post" action="/configurar"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+<label for="c">Código de configuración</label><input id="c" name="code" autocomplete="off" autocapitalize="none" spellcheck="false" required autofocus>
+<p class="hint">Está en el archivo <code>.env</code> del panel (<code>SETUP_CODE</code>).</p>
+<label for="u">Usuario</label><input id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+<label for="p">Contraseña <span class="mut">(mínimo 10 caracteres)</span></label><input id="p" name="password" type="password" autocomplete="new-password" minlength="10" required>
+<button class="wide">Crear cuenta</button></form></div></div>{% endblock %}

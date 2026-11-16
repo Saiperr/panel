@@ -1,0 +1,14 @@
+services:
+  panel:
+    build: .
+    container_name: panel
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # para comprobar los servicios del propio servidor
+    volumes:
+      - ./data:/data
+      - /proc:/host/proc:ro          # CPU, memoria, red, procesos y discos del servidor (solo lectura)
+      - /etc/passwd:/host/passwd:ro  # nombres de usuario de los procesos
