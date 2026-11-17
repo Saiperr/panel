@@ -1,6 +1,9 @@
-{% extends "base.html" %}{% block title %}Entrar{% endblock %}{% block body %}
-<div class="auth"><h1>Panel del servidor</h1><p class="sub">Estado del servidor en tiempo real.</p>
-<div class="card"><form method="post" action="/login"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+{% extends "base.html" %}{% block title %}Entrar{% endblock %}{% block bodyattr %} class="auth-page"{% endblock %}{% block body %}
+<main class="auth"><div class="auth-brand"><span class="mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10 22V10l12 12V10"/></svg></span><div><h1>{{ panel_name() }}</h1><p>Panel de control del servidor</p></div></div>
+{% if flash %}<div class="msg {{ flash.kind }}" role="status">{{ flash.msg }}</div>{% endif %}
+<div class="card"><h2 class="auth-h">Iniciar sesión</h2><form method="post" action="/login"><input type="hidden" name="csrf_token" value="{{ csrf }}">
 <label for="u">Usuario</label><input id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
 <label for="p">Contraseña</label><input id="p" name="password" type="password" autocomplete="current-password" required>
-<button class="wide">Entrar</button></form></div></div>{% endblock %}
+<label for="c">Código de verificación <span class="opt">si lo tienes activado</span></label><input id="c" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="7">
+<button class="wide">Entrar</button></form></div>
+<p class="auth-foot">Acceso restringido. Los intentos de acceso quedan registrados.</p></main>{% endblock %}

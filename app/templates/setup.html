@@ -1,8 +1,10 @@
-{% extends "base.html" %}{% block title %}Configurar{% endblock %}{% block body %}
-<div class="auth"><h1>Primer acceso</h1><p class="sub">Crea la cuenta de administrador. Esta pantalla desaparece en cuanto exista un usuario.</p>
-<div class="card"><form method="post" action="/configurar"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+{% extends "base.html" %}{% block title %}Configurar{% endblock %}{% block bodyattr %} class="auth-page"{% endblock %}{% block body %}
+<main class="auth"><div class="auth-brand"><span class="mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10 22V10l12 12V10"/></svg></span><div><h1>{{ panel_name() }}</h1><p>Primer acceso</p></div></div>
+{% if flash %}<div class="msg {{ flash.kind }}" role="status">{{ flash.msg }}</div>{% endif %}
+<div class="card"><h2 class="auth-h">Crear la cuenta de administrador</h2><form method="post" action="/configurar"><input type="hidden" name="csrf_token" value="{{ csrf }}">
 <label for="c">Código de configuración</label><input id="c" name="code" autocomplete="off" autocapitalize="none" spellcheck="false" required autofocus>
 <p class="hint">Está en el archivo <code>.env</code> del panel (<code>SETUP_CODE</code>).</p>
 <label for="u">Usuario</label><input id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
-<label for="p">Contraseña <span class="mut">(mínimo 10 caracteres)</span></label><input id="p" name="password" type="password" autocomplete="new-password" minlength="10" required>
-<button class="wide">Crear cuenta</button></form></div></div>{% endblock %}
+<label for="p">Contraseña <span class="opt">mínimo 10 caracteres</span></label><input id="p" name="password" type="password" autocomplete="new-password" minlength="10" required>
+<button class="wide">Crear cuenta</button></form></div>
+<p class="auth-foot">Esta pantalla desaparece en cuanto exista un usuario.</p></main>{% endblock %}

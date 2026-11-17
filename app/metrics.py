@@ -6,8 +6,11 @@ Un hilo toma una muestra cada INTERVAL segundos y otro comprueba los servicios c
 import os, re, json, time, socket, threading, collections, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor
 
+from .core import q, one, ex
+
 PROC = os.environ.get("HOST_PROC", "/host/proc")
 PASSWD = os.environ.get("HOST_PASSWD", "/host/passwd")
+HOSTNAME_FILE = os.environ.get("HOST_HOSTNAME", "/host/hostname")   # el del servidor; /proc daría el del contenedor
 SERVICES_FILE = os.environ.get("SERVICES_FILE", "/data/services.json")
 NET_DEV = os.environ.get("NET_DEV", f"{PROC}/1/net/dev")   # red del servidor, no la del contenedor
 DISK_PATHS = os.environ.get("DISKS", "Sistema (/)=/data")
@@ -177,30 +180,22 @@ def _cmd(pid, comm):
 
 
 # ---------- servicios ----------
-DEFAULT_SERVICES = [
-    {"name": "SaiperrNet (WordPress)", "type": "http", "target": "http://host.docker.internal:8081/", "link": "https://saiperr.net"},
-    {"name": "Nextcloud", "type": "http", "target": "http://host.docker.internal:8082/status.php", "link": "https://nube.saiperr.net"},
-    {"name": "Reservas", "type": "http", "target": "http://host.docker.internal:8083/login", "link": "https://reservas.saiperr.net"},
-    {"name": "Suscripciones", "type": "http", "target": "http://host.docker.internal:8084/login", "link": "https://suscripciones.saiperr.net"},
-    {"name": "Nginx Proxy Manager", "type": "http", "target": "http://host.docker.internal:81/"},
-    {"name": "SSH", "type": "tcp", "target": "host.docker.internal:22"},
-]
-
-
+# Las comprobaciones viven en la tabla `apps`. La primera vez se importan del services.json del panel anterior.
 def load_services():
     global _services
-    try:
-        with open(SERVICES_FILE, encoding="utf-8") as f:
-            data = json.load(f)
-        assert isinstance(data, list)
-    except (OSError, ValueError, AssertionError):
-        data = DEFAULT_SERVICES
+    rows = q("SELECT * FROM apps ORDER BY id")
+    if not rows and not one("SELECT 1 AS x FROM settings WHERE k='_apps_imported'"):
         try:
-            with open(SERVICES_FILE, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-        except OSError:
-            pass
-    _services = [s for s in data if isinstance(s, dict) and s.get("name") and s.get("target") and s.get("type") in ("http", "tcp")][:40]
+            with open(SERVICES_FILE, encoding="utf-8") as f:
+                data = json.load(f)
+        except (OSError, ValueError):
+            data = []
+        for s in data if isinstance(data, list) else []:
+            if isinstance(s, dict) and s.get("name") and s.get("target") and s.get("type") in ("http", "tcp"):
+                ex("INSERT INTO apps(name,kind,target,link) VALUES(?,?,?,?)", (s["name"], s["type"], s["target"], s.get("link") or ""))
+        ex("INSERT OR REPLACE INTO settings(k,v) VALUES('_apps_imported','1')")
+        rows = q("SELECT * FROM apps ORDER BY id")
+    _services = [dict(id=r["id"], name=r["name"], type=r["kind"], target=r["target"], link=r["link"] or "", project=r["project"] or "") for r in rows][:60]
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -241,12 +236,12 @@ def _svc_loop():
             now = time.time()
             with _lock:
                 for s, (ok, ms, detail) in zip(_services, res):
-                    st = _svc_state.setdefault(s["name"], {"since": now, "ok": ok, "hist": collections.deque(maxlen=40)})
+                    st = _svc_state.setdefault(s["id"], {"since": now, "ok": ok, "hist": collections.deque(maxlen=40)})
                     if st["ok"] != ok:
                         st["since"] = now
                     st.update(ok=ok, ms=ms, detail=detail, checked=now)
                     st["hist"].append(1 if ok else 0)
-                for k in [k for k in _svc_state if k not in {s["name"] for s in _services}]:
+                for k in [k for k in _svc_state if k not in {s["id"] for s in _services}]:
                     _svc_state.pop(k, None)
         except Exception:
             pass
@@ -256,11 +251,28 @@ def _svc_loop():
 def _services_view():
     out = []
     for s in _services:
-        st = _svc_state.get(s["name"])
+        st = _svc_state.get(s["id"])
+        d = dict(id=s["id"], name=s["name"], link=s["link"], kind=s["type"], target=s["target"], project=s["project"])
         if st:
-            out.append(dict(name=s["name"], link=s.get("link") or "", ok=st["ok"], ms=st["ms"], detail=st["detail"],
-                            since=round(st["since"]), hist=list(st["hist"])))
+            d.update(ok=st["ok"], ms=st["ms"], detail=st["detail"], since=round(st["since"]), hist=list(st["hist"]))
+        out.append(d)
     return out
+
+
+def services():
+    with _lock:
+        return _services_view()
+
+
+def down_for(app_id):
+    """Segundos que lleva caída una comprobación (0 si funciona o aún no se ha comprobado)."""
+    with _lock:
+        st = _svc_state.get(app_id)
+        return time.time() - st["since"] if st and not st["ok"] else 0
+
+
+def recheck():
+    load_services()
 
 
 # ---------- muestreo ----------
@@ -304,7 +316,7 @@ def _loop():
             up = _read(f"{PROC}/uptime").split()
             snap = dict(
                 t=round(time.time(), 1), interval=INTERVAL,
-                host=dict(name=_read(f"{PROC}/sys/kernel/hostname").strip(), kernel=_read(f"{PROC}/sys/kernel/osrelease").strip(),
+                host=dict(name=_read(HOSTNAME_FILE).strip() or _read(f"{PROC}/sys/kernel/hostname").strip(), kernel=_read(f"{PROC}/sys/kernel/osrelease").strip(),
                           uptime=float(up[0]) if up else 0, cpu_model=model, cores=len(cores),
                           load=[float(x) for x in load[:3]] if len(load) >= 3 else [], procs=len(procs),
                           threads=sum(p[5] for p in procs)),
@@ -336,7 +348,7 @@ def start():
 def snapshot():
     with _lock:
         d = dict(_latest)
-        d["services"] = _services_view()
+        d["services"] = [s for s in _services_view() if "ok" in s]
         return d
 
 

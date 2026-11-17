@@ -8,7 +8,13 @@ services:
     env_file: .env
     extra_hosts:
       - "host.docker.internal:host-gateway"   # para comprobar los servicios del propio servidor
+    group_add:
+      - "107"                                  # grupo docker del servidor: acceso al socket sin ser root
     volumes:
       - ./data:/data
-      - /proc:/host/proc:ro          # CPU, memoria, red, procesos y discos del servidor (solo lectura)
-      - /etc/passwd:/host/passwd:ro  # nombres de usuario de los procesos
+      - /proc:/host/proc:ro                    # CPU, memoria, red, procesos y discos del servidor (solo lectura)
+      - /etc/hostname:/host/hostname:ro        # nombre del servidor
+      - /etc/passwd:/host/passwd:ro            # nombres de usuario de los procesos
+      - /var/run/docker.sock:/var/run/docker.sock   # secciones Docker y Aplicaciones
+      - /var/run/tailscale:/var/run/tailscale:ro    # equipos de Tailscale en la sección Red
+      - /home/saiperr:/host/home:ro            # sección Archivos (solo lectura)

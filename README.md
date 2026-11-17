@@ -1,11 +1,17 @@
 # Panel
 
-Panel de control para un servidor casero: muestra CPU, memoria, red, discos y procesos, y comprueba si responden los servicios que tengas montados. En español, sin JavaScript de terceros.
+Panel de control para un servidor casero, en español y sin JavaScript de terceros. Muestra el estado del servidor, gestiona los contenedores Docker y vigila tus aplicaciones desde una sola página.
 
 ## Qué hace
 - **Métricas del servidor** leídas de `/proc` (solo lectura): CPU, memoria, red, procesos y discos.
-- **Vigilancia de servicios:** comprueba por HTTP los servicios definidos en `data/services.json` y enlaza a cada uno.
-- **Acceso con usuario y contraseña**, con un primer usuario que se crea con un código de configuración.
+- **Aplicaciones:** vigila por HTTP los servicios que añadas y enlaza a cada uno; arranca, para o reinicia grupos de contenedores.
+- **Docker:** lista contenedores, registros, consumo y recursos; iniciar, parar, reiniciar y limpiar.
+- **Red:** dispositivos vistos en la LAN (ARP), puertos a la escucha y equipos de Tailscale.
+- **Archivos:** explorador de solo lectura de una carpeta del servidor; no muestra claves ni `.env`.
+- **Consola restringida:** una lista cerrada de comandos (`docker ps`, `docker logs`…), sin intérprete de órdenes detrás.
+- **Automatizaciones:** tareas con disparador horario o por caída de una aplicación (reiniciar un contenedor, llamar a una URL, limpiar).
+- **Plugins:** secciones extra desde un `.zip`, ejecutadas en un marco aislado que no puede leer la sesión ni llamar a la API.
+- **Usuarios y seguridad:** varios usuarios, cambio de contraseña, verificación en dos pasos (2FA) y registro de auditoría.
 
 ## Pila
 Python 3.12 · FastAPI · Jinja2 · SQLite · Docker.
@@ -17,8 +23,10 @@ docker compose up -d --build
 ```
 El panel queda en el puerto `8085`. La primera vez, entra en `/configurar` con el código `SETUP_CODE` para crear tu usuario. Para uso real, ponlo detrás de un proxy con HTTPS (con `COOKIE_SECURE=1` el login solo funciona por HTTPS).
 
-## Servicios vigilados
-Edita `data/services.json`; cada entrada tiene `name`, `type`, `target` (URL que se comprueba, desde el contenedor se llega al servidor con `host.docker.internal`) y `link` (enlace público).
+Ajusta en `docker-compose.yml` el grupo (`group_add`, el GID del grupo `docker` de tu servidor: `getent group docker`) y la carpeta que quieres exponer en la sección Archivos.
 
-## Seguridad
-Contraseñas con Argon2, CSRF en los formularios y `/proc` y `/etc/passwd` montados en solo lectura. Los datos viven en `./data/app.db`; haz copia de esa carpeta.
+## Aviso de seguridad
+El contenedor monta `/var/run/docker.sock`, lo que equivale a tener acceso de administrador al servidor. Úsalo solo detrás de HTTPS, con contraseñas largas y 2FA, y no lo expongas a Internet sin protección adicional.
+
+## Datos
+Todo vive en `./data` (base de datos `app.db` y plugins). Haz copia de esa carpeta.
