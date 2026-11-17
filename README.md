@@ -13,6 +13,27 @@ Panel de control para un servidor casero, en español y sin JavaScript de tercer
 - **Plugins:** secciones extra desde un `.zip`, ejecutadas en un marco aislado que no puede leer la sesión ni llamar a la API.
 - **Usuarios y seguridad:** varios usuarios, cambio de contraseña, verificación en dos pasos (2FA) y registro de auditoría.
 
+## Capturas
+Capturas con datos de ejemplo, no de un servidor real.
+
+![Dashboard](docs/capturas/dashboard.png)
+*Dashboard: CPU, memoria, temperatura, red, estado de las aplicaciones y de los discos.*
+
+![Aplicaciones](docs/capturas/aplicaciones.png)
+*Aplicaciones: cada tarjeta une los contenedores de una app con la comprobación de que responde.*
+
+![Docker](docs/capturas/docker.png)
+*Docker: contenedores con su consumo, y pestañas para imágenes, volúmenes y redes.*
+
+![Red](docs/capturas/red.png)
+*Red: dispositivos de la LAN, interfaces y puertos a la escucha.*
+
+![Terminal](docs/capturas/terminal.png)
+*Terminal: consola restringida a una lista cerrada de comandos.*
+
+![Automatizaciones](docs/capturas/automatizaciones.png)
+*Automatizaciones: tareas programadas o disparadas por la caída de una aplicación.*
+
 ## Pila
 Python 3.12 · FastAPI · Jinja2 · SQLite · Docker.
 
